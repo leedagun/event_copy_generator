@@ -10,8 +10,8 @@ with st.sidebar:
     st.header("⚙️ 웹 프로그램 설정")
     api_key_input = st.text_input("Gemini API Key 입력", type="password", help="Google AI Studio에서 발급받은 API Key를 입력하세요.")
     
-    # 최신 규격에 맞는 안정적인 모델명으로 변경
-    model_choice = st.selectbox("사용할 AI 모델", ["gemini-2.5-flash", "gemini-2.5-pro"], index=0)
+    # 최신 규격에 맞는 gemini-3.8-flash 모델로 기본 설정
+    model_choice = st.selectbox("사용할 AI 모델", ["gemini-3.8-flash", "gemini-3.8-pro"], index=0)
     
     st.markdown("---")
     st.markdown("### 💡 이용 가이드")
@@ -48,23 +48,29 @@ with col_right:
                     genai.configure(api_key=api_key_input)
                     model = genai.GenerativeModel(model_choice)
                     
-                    prompt = """
+                    # 사용자가 입력한 추가 요구사항이 프롬프트에 자동으로 반영되도록 설정
+                    user_custom_instruction = extra_request if extra_request else "일반적인 전문 마케팅 톤"
+                    
+                    prompt = f"""
                     당신은 10년 차 전문 마케터이자 각 SNS 플랫폼 알고리즘을 꿰뚫고 있는 카피라이터입니다.
                     사용자가 제공한 이벤트 이미지를 분석하여 네이버 블로그, 인스타그램, 카카오톡(채널/단톡방용)에 최적화된 마케팅 문구를 작성하세요.
                     
+                    [사용자 추가 요청 사항 및 스타일 지침]: 
+                    {user_custom_instruction}
+                    
                     반드시 아래의 JSON 구조로만 응답해주세요. 다른 텍스트는 포함하지 마세요.
-                    {
-                      "blog": {
+                    {{
+                      "blog": {{
                         "title": "검색 유입용 네이버 블로그 포스팅 제목",
                         "content": "블로그용 본문 (도입부, 이벤트 상세 내용, 참여 방법, 유의사항 구조 포함)"
-                      },
-                      "instagram": {
+                      }},
+                      "instagram": {{
                         "content": "인스타그램용 본문 (이모지 풍성하게, 가독성 좋은 줄바꿈, 하단 해시태그 10개 포함)"
-                      },
-                      "kakao": {
+                      }},
+                      "kakao": {{
                         "content": "카카오톡(채널/단톡방)용 본문 (한눈에 들어오는 가독성, 핵심 혜택 강조, 참여 링크 유도형 문구)"
-                      }
-                    }
+                      }}
+                    }}
                     """
                     
                     response = model.generate_content([image, prompt])
