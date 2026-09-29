@@ -12,24 +12,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# 세션 상태 초기화
-if "gemini_api_key" not in st.session_state:
-    st.session_state["gemini_api_key"] = ""
-if "result_data" not in st.session_state:
-    st.session_state["result_data"] = None
-
 # 2. 사이드바 - 설정 영역
 with st.sidebar:
     st.header("⚙️ 웹 프로그램 설정")
     api_key_input = st.text_input(
         "Gemini API Key 입력", 
         type="password", 
-        value=st.session_state["gemini_api_key"],
         help="Google AI Studio에서 발급받은 Gemini API Key를 입력하세요."
     )
-    if api_key_input:
-        st.session_state["gemini_api_key"] = api_key_input
-        
+    
     model_choice = st.selectbox(
         "사용할 AI 모델",
         ["gemini-2.5-flash", "gemini-2.5-pro"],
@@ -57,8 +48,7 @@ with col_left:
         
     extra_request = st.text_area(
         "추가 요구사항 (선택사항)", 
-        placeholder="예: '선착순 50명 마감 강조해줘', '20대 대상 친근한 반말로 해줘'",
-        key="extra_request_input"
+        placeholder="예: '선착순 50명 마감 강조해줘', '20대 대상 친근한 반말로 해줘'"
     )
     
     generate_btn = st.button("🚀 블로그·인스타·카톡 문구 생성하기", type="primary", use_container_width=True)
@@ -67,16 +57,15 @@ with col_right:
     st.subheader("2️⃣ 플랫폼별 생성 결과")
     
     if generate_btn:
-        if not st.session_state["gemini_api_key"]:
+        if not api_key_input:
             st.error("⚠️ 사이드바에 Gemini API Key를 먼저 입력해주세요!")
         elif image is None:
             st.warning("⚠️ 분석할 이벤트 이미지를 업로드해주세요!")
         else:
             with st.spinner("🤖 Gemini가 이미지를 분석하고 플랫폼별 맞춤 카피를 작성 중입니다..."):
                 try:
-                    client = genai.Client(api_key=st.session_state["gemini_api_key"])
+                    client = genai.Client(api_key=api_key_input)
                     
-                    # 블로그, 인스타, 카톡용 프롬프트 정의
                     prompt = f"""
                     당신은 10년 차 전문 마케터이자 각 SNS 플랫폼 알고리즘을 꿰뚫고 있는 카피라이터입니다.
                     사용자가 제공한 이벤트 이미지를 분석하여 네이버 블로그, 인스타그램, 카카오톡(채널/단톡방용)에 최적화된 마케팅 문구를 작성하세요.
@@ -105,29 +94,24 @@ with col_right:
                         ),
                     )
                     
-                    st.session_state["result_data"] = json.loads(response.text)
+                    result_json = json.loads(response.text)
                     st.success("문구 생성이 완료되었습니다! 🎉")
+                    
+                    # 결과 즉시 출력
+                    st.markdown("---")
+                    st.markdown("### 📝 네이버/티스토리 블로그 포스팅")
+                    st.text_input("블로그 제목", result_json["blog"]["title"], key="out_blog_title")
+                    st.text_area("블로그 본문", result_json["blog"]["content"], height=220, key="out_blog_content")
+                    
+                    st.markdown("---")
+                    st.markdown("### 📸 인스타그램 마케팅 문구")
+                    st.text_area("인스타그램 복사 영역", result_json["instagram"]["content"], height=180, key="out_ig")
+                    
+                    st.markdown("---")
+                    st.markdown("### 💬 카카오톡 (단톡방/채널) 메시지 문구")
+                    st.text_area("카카오톡 복사 영역", result_json["kakao"]["content"], height=150, key="out_kakao")
                     
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
-
-    # 결과 출력 (블로그, 인스타, 카톡)
-    if st.session_state["result_data"]:
-        result_json = st.session_state["result_data"]
-        
-        st.markdown("---")
-        st.markdown("### 📝 네이버/티스토리 블로그 포스팅")
-        st.text_input("블로그 제목", result_json["blog"]["title"], key="res_blog_title")
-        st.text_area("블로그 본문", result_json["blog"]["content"], height=250, key="res_blog_content")
-        
-        st.markdown("---")
-        st.markdown("### 📸 인스타그램 마케팅 문구")
-        st.text_area("인스타그램 복사 영역", result_json["instagram"]["content"], height=200, key="res_ig")
-        
-        st.markdown("---")
-        st.markdown("### 💬 카카오톡 (단톡방/채널) 메시지 문구")
-        st.text_area("카카오톡 복사 영역", result_json["kakao"]["content"], height=180, key="res_kakao")
-        
     else:
-        if not generate_btn:
-            st.info("왼쪽에서 이미지를 업로드하고 **'문구 생성하기'** 버튼을 클릭해 주세요.")
+        st.info("왼쪽에서 이미지를 업로드하고 **'문구 생성하기'** 버튼을 클릭해 주세요.")
