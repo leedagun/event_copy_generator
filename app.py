@@ -9,7 +9,10 @@ st.set_page_config(page_title="이벤트 이미지 맞춤형 광고 문구 생�
 with st.sidebar:
     st.header("⚙️ 웹 프로그램 설정")
     api_key_input = st.text_input("Gemini API Key 입력", type="password", help="Google AI Studio에서 발급받은 API Key를 입력하세요.")
-    model_choice = st.selectbox("사용할 AI 모델", ["gemini-1.5-flash", "gemini-1.5-pro"], index=0)
+    
+    # 최신 규격에 맞는 안정적인 모델명으로 변경
+    model_choice = st.selectbox("사용할 AI 모델", ["gemini-2.5-flash", "gemini-2.5-pro"], index=0)
+    
     st.markdown("---")
     st.markdown("### 💡 이용 가이드")
     st.markdown("1. 사이드바에 Gemini API Key를 입력합니다.\n2. 이벤트 포스터 이미지를 업로드합니다.\n3. 추가 요구사항이 있다면 적어주세요.\n4. 생성 버튼을 누르고 문구를 확인하세요!")
