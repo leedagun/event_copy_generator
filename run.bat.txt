@@ -1,0 +1,2 @@
+@echo off
+start /min cmd /c "streamlit run app.py"
