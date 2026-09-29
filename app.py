@@ -7,7 +7,7 @@ from google.genai import types
 
 # 1. 웹 페이지 기본 설정
 st.set_page_config(
-    page_title="이벤트 이미지 맞춤형 광고 문구 생성기",
+    page_title="이벤트 이미지 광고 문구 생성기",
     page_icon="🎨",
     layout="wide"
 )
