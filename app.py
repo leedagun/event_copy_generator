@@ -7,7 +7,7 @@ from google.genai import types
 
 # 1. 웹 페이지 기본 설정
 st.set_page_config(
-    page_title="이벤트 이미지 광고 문구 생성기",
+    page_title="이벤트 이미지 맞춤형 광고 문구 생성기",
     page_icon="🎨",
     layout="wide"
 )
@@ -42,7 +42,7 @@ with st.sidebar:
 
 # 3. 메인 화면 UI
 st.title("🎨 이벤트 이미지 플랫폼별 광고 문구 생성 웹 프로그램")
-st.write("홍보용 이벤트 이미지를 업로드하면, Gemini AI가 이미지를 분석해 **인스타그램, 블로그, 페이스북, X(트위터)** 맞춤형 문구를 만들어 드립니다.")
+st.write("홍보용 이벤트 이미지를 업로드하면, Gemini AI가 이미지를 분석해 **블로그, 인스타그램, 카카오톡** 맞춤형 문구를 만들어 드립니다.")
 
 col_left, col_right = st.columns([1, 1.5], gap="large")
 
@@ -61,7 +61,7 @@ with col_left:
         key="extra_request_input"
     )
     
-    generate_btn = st.button("🚀 플랫폼별 광고 문구 생성하기", type="primary", use_container_width=True)
+    generate_btn = st.button("🚀 블로그·인스타·카톡 문구 생성하기", type="primary", use_container_width=True)
 
 with col_right:
     st.subheader("2️⃣ 플랫폼별 생성 결과")
@@ -76,25 +76,23 @@ with col_right:
                 try:
                     client = genai.Client(api_key=st.session_state["gemini_api_key"])
                     
+                    # 블로그, 인스타, 카톡용 프롬프트 정의
                     prompt = f"""
                     당신은 10년 차 전문 마케터이자 각 SNS 플랫폼 알고리즘을 꿰뚫고 있는 카피라이터입니다.
-                    사용자가 제공한 이벤트 이미지를 분석하여 인스타그램, 블로그, 페이스북, X(트위터)에 최적화된 마케팅 문구를 작성하세요.
+                    사용자가 제공한 이벤트 이미지를 분석하여 네이버 블로그, 인스타그램, 카카오톡(채널/단톡방용)에 최적화된 마케팅 문구를 작성하세요.
                     추가 요구사항: {extra_request if extra_request else '없음'}
                     
                     반드시 아래의 JSON 구조로만 응답해주세요. 다른 텍스트는 포함하지 마세요.
                     {{
+                      "blog": {{
+                        "title": "검색 유입용 네이버 블로그 포스팅 제목",
+                        "content": "블로그용 본문 (도입부, 이벤트 상세 내용, 참여 방법, 유의사항 구조 포함)"
+                      }},
                       "instagram": {{
                         "content": "인스타그램용 본문 (이모지 풍성하게, 가독성 좋은 줄바꿈, 하단 해시태그 10개 포함)"
                       }},
-                      "blog": {{
-                        "title": "검색 유입용 블로그 포스팅 제목",
-                        "content": "블로그용 본문 (도입부, 이벤트 상세 내용, 참여 방법, 유의사항 구조 포함)"
-                      }},
-                      "facebook": {{
-                        "content": "페이스북용 본문 (친근하고 소통하는 톤, 참여 링크 유도 CTA 포함)"
-                      }},
-                      "twitter": {{
-                        "content": "X(트위터)용 본문 (280자 내외, 직관적이고 트렌디한 요약 문구)"
+                      "kakao": {{
+                        "content": "카카오톡(채널/단톡방)용 본문 (한눈에 들어오는 가독성, 핵심 혜택 강조, 참여 링크 유도형 문구)"
                       }}
                     }}
                     """
@@ -113,27 +111,23 @@ with col_right:
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
 
-    # 결과 출력 (탭을 제거하고 순차적 마크다운/텍스트 영역으로 배치하여 오류 원천 차단)
+    # 결과 출력 (블로그, 인스타, 카톡)
     if st.session_state["result_data"]:
         result_json = st.session_state["result_data"]
         
-        st.markdown("---")
-        st.markdown("### 📸 인스타그램 마케팅 문구")
-        st.text_area("인스타그램 복사 영역", result_json["instagram"]["content"], height=200, key="res_ig")
-        
-        # 구분선
         st.markdown("---")
         st.markdown("### 📝 네이버/티스토리 블로그 포스팅")
         st.text_input("블로그 제목", result_json["blog"]["title"], key="res_blog_title")
         st.text_area("블로그 본문", result_json["blog"]["content"], height=250, key="res_blog_content")
         
         st.markdown("---")
-        st.markdown("### 📘 페이스북 광고 문구")
-        st.text_area("페이스북 복사 영역", result_json["facebook"]["content"], height=200, key="res_fb")
+        st.markdown("### 📸 인스타그램 마케팅 문구")
+        st.text_area("인스타그램 복사 영역", result_json["instagram"]["content"], height=200, key="res_ig")
         
         st.markdown("---")
-        st.markdown("### ✖️ X (트위터) 문구")
-        st.text_area("트위터 복사 영역", result_json["twitter"]["content"], height=150, key="res_tw")
+        st.markdown("### 💬 카카오톡 (단톡방/채널) 메시지 문구")
+        st.text_area("카카오톡 복사 영역", result_json["kakao"]["content"], height=180, key="res_kakao")
+        
     else:
         if not generate_btn:
-            st.info("왼쪽에서 이미지를 업로드하고 **'플랫폼별 광고 문구 생성하기'** 버튼을 클릭해 주세요.")
+            st.info("왼쪽에서 이미지를 업로드하고 **'문구 생성하기'** 버튼을 클릭해 주세요.")
