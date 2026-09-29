@@ -7,7 +7,7 @@ from google.genai import types
 
 # 1. 웹 페이지 기본 설정
 st.set_page_config(
-    page_title="이벤트 이미지 맞춤형 광고 문구 생성기 (Gemini)",
+    page_title="이벤트 이미지 맞춤형 광고 문구 생성기",
     page_icon="🎨",
     layout="wide"
 )
@@ -38,7 +38,7 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### 💡 이용 가이드")
-    st.markdown("1. 사이드바에 Gemini API Key를 입력합니다.\n2. 이벤트 포스터 이미지를 업로드합니다.\n3. 추가 요구사항이 있다면 적어주세요.\n4. 생성 버튼을 누르고 플랫폼별 문구를 확인하세요!")
+    st.markdown("1. 사이드바에 Gemini API Key를 입력합니다.\n2. 이벤트 포스터 이미지를 업로드합니다.\n3. 추가 요구사항이 있다면 적어주세요.\n4. 생성 버튼을 누르고 문구를 확인하세요!")
 
 # 3. 메인 화면 UI
 st.title("🎨 이벤트 이미지 플랫폼별 광고 문구 생성 웹 프로그램")
@@ -107,35 +107,33 @@ with col_right:
                         ),
                     )
                     
-                    # 결과를 세션 상태에 저장하여 UI 충돌 방지
                     st.session_state["result_data"] = json.loads(response.text)
                     st.success("문구 생성이 완료되었습니다! 🎉")
                     
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
 
-    # 세션에 저장된 결과가 있는 경우 화면에 안전하게 렌더링
+    # 결과 출력 (탭을 제거하고 순차적 마크다운/텍스트 영역으로 배치하여 오류 원천 차단)
     if st.session_state["result_data"]:
         result_json = st.session_state["result_data"]
         
-        tab_ig, tab_blog, tab_fb, tab_tw = st.tabs(["📸 인스타그램", "📝 블로그", "📘 페이스북", "✖️ X (트위터)"])
+        st.markdown("---")
+        st.markdown("### 📸 인스타그램 마케팅 문구")
+        st.text_area("인스타그램 복사 영역", result_json["instagram"]["content"], height=200, key="res_ig")
         
-        with tab_ig:
-            st.markdown("### 인스타그램 마케팅 문구")
-            st.text_area("복사해서 사용하세요", result_json["instagram"]["content"], height=300, key="safe_res_ig")
-            
-        with tab_blog:
-            st.markdown("### 네이버/티스토리 블로그 포스팅")
-            st.text_input("블로그 제목", result_json["blog"]["title"], key="safe_res_blog_title")
-            st.text_area("블로그 본문", result_json["blog"]["content"], height=300, key="safe_res_blog_content")
-            
-        with tab_fb:
-            st.markdown("### 페이스북 광고 문구")
-            st.text_area("복사해서 사용하세요", result_json["facebook"]["content"], height=300, key="safe_res_fb")
-            
-        with tab_tw:
-            st.markdown("### X (트위터) 문구")
-            st.text_area("복사해서 사용하세요", result_json["twitter"]["content"], height=250, key="safe_res_tw")
+        # 구분선
+        st.markdown("---")
+        st.markdown("### 📝 네이버/티스토리 블로그 포스팅")
+        st.text_input("블로그 제목", result_json["blog"]["title"], key="res_blog_title")
+        st.text_area("블로그 본문", result_json["blog"]["content"], height=250, key="res_blog_content")
+        
+        st.markdown("---")
+        st.markdown("### 📘 페이스북 광고 문구")
+        st.text_area("페이스북 복사 영역", result_json["facebook"]["content"], height=200, key="res_fb")
+        
+        st.markdown("---")
+        st.markdown("### ✖️ X (트위터) 문구")
+        st.text_area("트위터 복사 영역", result_json["twitter"]["content"], height=150, key="res_tw")
     else:
         if not generate_btn:
             st.info("왼쪽에서 이미지를 업로드하고 **'플랫폼별 광고 문구 생성하기'** 버튼을 클릭해 주세요.")
